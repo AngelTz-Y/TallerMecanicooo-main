@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Mecánicos</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+
+    <style>
+        body {
+            background-color: #f4f6f9;
+        }
+        /* Barra superior */
+        .navbar-top {
+            background-color: #161b22;
+            padding: 10px 20px;
+            color: #c9d1d9;
+            font-size: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #30363d;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-top .navbar-brand {
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        .navbar-top .navbar-links a {
+            color: #c9d1d9;
+            margin-left: 15px;
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar-top .navbar-links a:hover {
+            color: #58a6ff;
+        }
+
+        h2 {
+            font-family: 'Arial', sans-serif;
+            font-size: 2rem;
+            margin-top: 70px;
+            font-weight: bold;
+            color: #4a4a4a;
+        }
+        .table-responsive {
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            overflow: hidden;
+            background-color: #ffffff;
+            padding: 20px;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #e9ecef;
+        }
+        thead {
+            background-color: #343a40;
+            color: #ffffff;
+        }
+        th, td {
+            vertical-align: middle;
+            text-align: center;
+        }
+        .btn-modificar {
+            background-color: #28a745;
+            color: white;
+            border: none;
+        }
+        .btn-modificar:hover {
+            background-color: #218838;
+        }
+        .btn-eliminar {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+        }
+        .btn-eliminar:hover {
+            background-color: #c82333;
+        }
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1055;
+        }
+    </style>
+</head>
+<body>
+<!-- Barra superior de navegación -->
+<div class="navbar-top">
+    <div class="navbar-links">
+        <a href="javascript:history.back()" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Atrás
+        </a>
+    </div>
+    <div class="navbar-brand">
+        {% if username %}
+            Bienvenido, <strong>{{ username }}</strong>
+        {% else %}
+            Bienvenido
+        {% endif %}
+    </div>
+    <div class="navbar-links">
+        <a href="{% url 'logout' %}"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a>
+    </div>
+</div>
+
+<br>
+<br>
+<h2 class="text-center mb-4">Lista de Mecánicos</h2>
+
+<div class="toast-container">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="toast align-items-center text-bg-{{ message.tags }} border-0 mb-3 show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        {{ message }}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<div class="container">
+    <div class="table-responsive">
+        <table class="table table-hover table-striped table-bordered align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">RUT</th>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Apellido</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">PIN</th>
+                    <th scope="col" class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mecanico in mecanicos %}
+                <tr>
+                    <td>{{ mecanico.rut }}</td>
+                    <td>{{ mecanico.nombre }}</td>
+                    <td>{{ mecanico.apellido }}</td>
+                    <td>{{ mecanico.email }}</td>
+                    <td>{{ mecanico.pin }}</td>
+                    <td>
+                        <a href="{% url 'modificar_mecanico' mecanico.rut %}" class="btn btn-sm btn-modificar me-2">
+                            <i class="bi bi-pencil-fill"></i> Modificar
+                        </a>
+                        <button type="button" class="btn btn-sm btn-eliminar" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-url="{% url 'eliminar_mecanico' mecanico.rut %}" data-rut="{{ mecanico.rut }}">
+                            <i class="bi bi-trash-fill"></i> Eliminar
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que deseas eliminar al mecánico con el RUT <strong id="rutMecanico"></strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.getElementById('confirmDeleteModal').addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const url = button.getAttribute('data-url');
+        const rut = button.getAttribute('data-rut');
+        
+        document.getElementById('rutMecanico').textContent = rut;
+        const deleteForm = document.getElementById('deleteForm');
+        deleteForm.action = url;
+    });
+</script>
+</body>
+</html>
